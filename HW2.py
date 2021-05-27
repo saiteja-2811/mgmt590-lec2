@@ -17,20 +17,15 @@ def create_table():
     cursor = sqliteConnection.cursor()
     print("Database created and Successfully Connected to SQLite")
 
-    # Drop Table if exists already
-    sqlite_drop_query = """drop table if exists answers"""
-
     # Create the table structure
-    sqlite_create_Query = """ create table answers(
+    sqlite_create_Query = """ create table if not exists answers(
                                     timestamp int primary key not null,
-                                    model text,
-                                    answer text,
-                                    question text,
-                                    context text
+                                    model text not null,
+                                    answer text not null,
+                                    question text not null,
+                                    context text not null
                                 );
                                     """
-    # Execute the drop sqlite_drop_query
-    cursor.execute(sqlite_drop_query)
     # Execute the select query
     cursor.execute(sqlite_create_Query)
     # Save the changes
@@ -81,10 +76,14 @@ def getmodels():
 @app.route("/models", methods=['DELETE'])
 def delmodels():
     global model_list
+    cnt = None
+    del_mod = request.args.get('model')
     for i in range(0,len(model_list)):
-        if (model_list[i]['name']  == request.args.get('model')):
+        if (model_list[i]['name']  == del_mod):
             cnt = i
-    model_list.pop(cnt)
+            model_list.pop(cnt)
+        if cnt == None:
+            return "The model cannot be deleted because it is not present in the API."
     return jsonify(model_list)
 
 # POST Answer - To get the answers for the question & context input and store the data in SQLite DB
