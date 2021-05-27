@@ -1,4 +1,3 @@
-import pandas as pd
 from transformers.pipelines import pipeline
 from flask import Flask
 from flask import request
@@ -6,13 +5,6 @@ from flask import jsonify
 
 # Create my flask app
 app = Flask(__name__)
-
-
-# Define a handler for the / path, which
-# returns "Hello World"
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
 
 
 # Define a handler for the /answer path, which
@@ -24,9 +16,9 @@ def answer():
     # Get the request body data
     data = request.json
 
-    # Import model
-    hg_comp = pipeline('question-answering', model="distilbert-base-uncased-distilled-squad",
-                       tokenizer="distilbert-base-uncased-distilled-squad")
+    # Import Hugging face model
+    hg_comp = pipeline('question-answering', model="deepset/roberta-base-squad2",
+                       tokenizer="deepset/roberta-base-squad2")
 
     # Answer the answer
     answer = hg_comp({'question': data['question'], 'context': data['context']})['answer']

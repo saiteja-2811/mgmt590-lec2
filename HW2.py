@@ -47,15 +47,18 @@ def delmodels():
 def postmodels():
     global model_list
     for i in range(0,len(model_list)):
-        if (model_list[i]['model']  == request.args.get('model')):
+        if (model_list[i]['name']  == request.args.get('model')):
             cnt = i
     # Get the request body data
     data = request.json
 
     # Import Hugging face model
-    hg_comp = pipeline('question-answering',
-                       model=model_list[i]['model'],
-                       tokenizer=model_list[i]['tokenizer'])
+    try:
+        hg_comp = pipeline('question-answering',
+                           model=model_list[i]['model'],
+                           tokenizer=model_list[i]['tokenizer'])
+    except:
+        print("Error")
     # Answer the answer
     answer = hg_comp({'question': data['question'], 'context': data['context']})['answer']
 
@@ -137,4 +140,4 @@ def getanswer():
 
 if __name__ == '__main__':
     # Run our Flask app and start listening for requests!
-    app.run(host='0.0.0.0', port=8000, threaded=True)
+    app.run(host='10.186.42.218', port=8000, threaded=True)
