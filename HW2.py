@@ -8,10 +8,44 @@ import sqlite3
 # Create my flask app
 app = Flask(__name__)
 
+# Create a Database
+def create_table():
+    sqliteConnection = sqlite3.connect('SQLite_Python.db')
+    cursor = sqliteConnection.cursor()
+
+    print("Database created and Successfully Connected to SQLite")
+    #
+    sqlite_drop_query = """drop table if exists answers"""
+
+    sqlite_create_Query = """ create table answers(
+                                    timestamp int primary key not null,
+                                    model text,
+                                    answer text,
+                                    question text,
+                                    context text
+                                );
+                                    """
+    cursor.execute(sqlite_drop_query)
+    cursor.execute(sqlite_create_Query)
+    sqliteConnection.commit()
+    cursor.close()
+    sqliteConnection.close()
+
+# Default model details
+df_model_details = {
+                "name": "distilled-bert",
+                "tokenizer": "distilbert-base-uncased-distilled-squad",
+                "model": "distilbert-base-uncased-distilled-squad"
+                }
+
+# Empt model mist
 model_list = []
+# Count
 rm_ind = int()
+# Empy answer list
 result = []
-# Face model.
+
+# PUT models
 @app.route("/models", methods=['PUT'])
 def putmodels():
     global model_list
@@ -27,27 +61,32 @@ def putmodels():
     model_list.append(out)
     return jsonify(model_list)
 
-#POST request
+#POST models
 @app.route("/models", methods=['GET'])
 def getmodels():
     global model_list
     return jsonify(model_list)
 
-# DELETE Request
+# DELETE models
 @app.route("/models", methods=['DELETE'])
 def delmodels():
     global model_list
     for i in range(0,len(model_list)):
-        if (model_list[i]['model']  == request.args.get('model')):
+        if (model_list[i]['name']  == request.args.get('model')):
             cnt = i
     model_list.pop(cnt)
     return jsonify(model_list)
 
+# POST Answer
 @app.route("/answer",methods=['POST'])
 def postmodels():
+    model_name = request.args.get('model')
+    if request.args.get('model') == None:
+        model_name = df_model_details['name']
+
     global model_list
     for i in range(0,len(model_list)):
-        if (model_list[i]['name']  == request.args.get('model')):
+        if (model_list[i]['name']  == model_name):
             cnt = i
     # Get the request body data
     data = request.json
@@ -71,30 +110,18 @@ def postmodels():
         "context": data['context']
         }
 
+
     # Creating the database
     try:
+
         sqliteConnection = sqlite3.connect('SQLite_Python.db')
         cursor = sqliteConnection.cursor()
-
-        print("Database created and Successfully Connected to SQLite")
-        #
-        # sqlite_drop_query = """drop table if exists answers"""
-        #
-        # sqlite_create_Query = """ create table answers(
-        #                                 timestamp int primary key not null,
-        #                                 model text,
-        #                                 answer text,
-        #                                 question text,
-        #                                 context text
-        #                             );
-        #                                 """
         sqlite_insert_Query = """
                                   insert into answers VALUES (?,?,?,?,?);
                                     """
-        # cursor.execute(sqlite_drop_query)
-        # cursor.execute(sqlite_create_Query)
         cursor.execute(sqlite_insert_Query, (int(time.time()), model_list[i]['model'], answer, data['question'],data['context']))
         sqliteConnection.commit()
+        cursor.close()
 
     except sqlite3.Error as error:
         print("Error while connecting to sqlite", error)
@@ -104,6 +131,7 @@ def postmodels():
             print("The SQLite connection is closed")
     return jsonify(out)
 
+# GET recently answered question details
 @app.route("/answer",methods=['GET'])
 def getanswer():
     global model_list
@@ -139,5 +167,7 @@ def getanswer():
     return jsonify(out_list)
 
 if __name__ == '__main__':
+    create_table()
     # Run our Flask app and start listening for requests!
-    app.run(host='10.186.42.218', port=8000, threaded=True)
+    app.run(host='0.0.0.0', port=8000, threaded=True)
+
