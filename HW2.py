@@ -88,7 +88,7 @@ def delmodels():
             cnt = i
             model_list.pop(cnt)
         if cnt == None:
-            return "The model cannot be deleted because it is not present in the API."
+            return jsonify("The model cannot be deleted because it is not present in the API.")
     return jsonify(model_list)
 
 # POST Answer - To get the answers for the question & context input and store the data in SQLite DB
@@ -99,6 +99,8 @@ def postmodels():
     # Get the model name
     model_name = request.args.get('model')
     # define empty list to store models
+    model_param1 = ''
+    model_param2 = ''
     global model_list
     # Check for parameter
     if request.args.get('model') == None:
