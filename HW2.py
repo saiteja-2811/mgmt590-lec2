@@ -75,7 +75,7 @@ def getmodels():
     if len(model_list) == 0:
         return jsonify(df_model_details)
     else:
-        return model_list
+        return jsonify(model_list)
 
 # DELETE models - to delete some models from the model list
 @app.route("/models", methods=['DELETE'])
