@@ -66,6 +66,7 @@ def putmodels():
     }
     # Append to the empty list
     model_list.append(out)
+    model_list = set(model_list)
     return jsonify(model_list)
 
 #GET models - to get the list of available models
@@ -87,8 +88,6 @@ def delmodels():
         if (model_list[i]['name']  == del_mod):
             cnt = i
             model_list.pop(cnt)
-        if cnt == None:
-            return jsonify("The model cannot be deleted because it is not present in the API.")
     return jsonify(model_list)
 
 # POST Answer - To get the answers for the question & context input and store the data in SQLite DB
