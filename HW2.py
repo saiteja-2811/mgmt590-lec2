@@ -71,8 +71,17 @@ def putmodels():
     }
     # Append to the empty list
     model_list.append(out)
-    model_list = set(model_list)
-    return jsonify(model_list)
+    modelList = model_list
+    seen = set()
+    new_l = []
+    for d in modelList:
+        t = tuple(d.items())
+        if t not in seen:
+            seen.add(t)
+            new_l.append(d)
+
+    modelList = new_l
+    return jsonify(modelList)
 
 #GET models - to get the list of available models
 @app.route("/models", methods=['GET'])
