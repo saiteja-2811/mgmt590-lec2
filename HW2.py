@@ -6,6 +6,7 @@ from flask import jsonify
 import time
 import sqlite3
 import os
+import torch
 
 # Initialize my flask app
 app = Flask(__name__)
@@ -71,7 +72,10 @@ def putmodels():
 @app.route("/models", methods=['GET'])
 def getmodels():
     global model_list
-    return jsonify(model_list)
+    if len(model_list) == 0:
+        return jsonify(df_model_details)
+    else:
+        return model_list
 
 # DELETE models - to delete some models from the model list
 @app.route("/models", methods=['DELETE'])
