@@ -51,6 +51,11 @@ rm_ind = int()
 # Empty answer list
 result = []
 
+# Define a handler for / path
+@app.route("/")
+def hello_world():
+    return "<p>Hello,world</p>"
+
 # PUT models to input the list of models
 @app.route("/models", methods=['PUT'])
 def putmodels():
