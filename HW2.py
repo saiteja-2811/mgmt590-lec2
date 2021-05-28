@@ -5,6 +5,7 @@ from flask import request
 from flask import jsonify
 import time
 import sqlite3
+import os
 
 # Initialize my flask app
 app = Flask(__name__)
@@ -206,4 +207,4 @@ if __name__ == '__main__':
     # Call the create table function
     create_table()
     # Run our Flask app and start listening for requests!
-    app.run(host='0.0.0.0', port=8000, threaded=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)), threaded=True)
