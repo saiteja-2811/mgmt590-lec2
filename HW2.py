@@ -1,258 +1,229 @@
-import os
-import time
-import sqlite3
-
+# Import all the dependecies
 from transformers.pipelines import pipeline
 from flask import Flask
-from flask import request, jsonify
+from flask import request
+from flask import jsonify
+import time
+import sqlite3
+import os
+import torch
 
-
-#--------------#
-#  VARIABLES   #
-#--------------#
-
-# Create my flask app
+# Initialize my flask app
 app = Flask(__name__)
 
-# Create a variable that will hold our models in memory
-models = {}
+# Create a Database table
+def create_table():
+    # Create Connection
+    sqliteConnection = sqlite3.connect('SQLite_Python.db')
+    # Open the cursor
+    cursor = sqliteConnection.cursor()
+    print("Database created and Successfully Connected to SQLite")
 
-# The database file
-db = 'answers.db'
+    # Create the table structure
+    sqlite_create_Query = """ create table if not exists answers(
+                                    timestamp int primary key not null,
+                                    model text not null,
+                                    answer text not null,
+                                    question text not null,
+                                    context text not null
+                                );
+                                    """
+    # Execute the select query
+    cursor.execute(sqlite_create_Query)
+    # Save the changes
+    sqliteConnection.commit()
+    # Close the cursor
+    cursor.close()
+    # Close the connection
+    sqliteConnection.close()
 
-#--------------#
-#    ROUTES    #
-#--------------#
+# Default model details
+df_model_details = {
+                "name": "distilled-bert",
+                "tokenizer": "distilbert-base-uncased-distilled-squad",
+                "model": "distilbert-base-uncased-distilled-squad"
+                }
 
-# Define a handler for the / path, which
-# returns a message and allows Cloud Run to 
-# health check the API.
+# Empty model list
+model_list = []
+# Count
+rm_ind = int()
+# Empty answer list
+result = []
+
+# Define a handler for / path
 @app.route("/")
 def hello_world():
-    return "<p>The question answering API is healthy!</p>"
+    return "<p>Hello,world</p>"
 
-
-# Define a handler for the /answer path, which
-# processes a JSON payload with a question and
-# context and returns an answer using a Hugging
-# Face model.
-@app.route("/answer", methods=['POST'])
-def answer():
-
+# PUT models to input the list of models
+@app.route("/models", methods=['PUT'])
+def putmodels():
+    global model_list
     # Get the request body data
     data = request.json
-
-    # Validate model name if given
-    if request.args.get('model') != None:
-        if not validate_model(request.args.get('model')):
-            return "Model not found", 400
-
-    # Answer the question
-    answer, model_name = answer_question(request.args.get('model'), 
-            data['question'], data['context'])
-    timestamp = int(time.time())
-
-    # Insert our answer in the database
-    con = sqlite3.connect(db)
-    cur = con.cursor()
-    sql = "INSERT INTO answers VALUES ('{question}','{context}','{model}','{answer}',{timestamp})"
-    cur.execute(sql.format(
-        question=data['question'].replace("'", "''"), 
-        context=data['context'].replace("'", "''"), 
-        model=model_name, 
-        answer=answer, 
-        timestamp=str(timestamp)))
-    con.commit()
-    con.close()
 
     # Create the response body.
     out = {
-        "question": data['question'],
-        "context": data['context'],
-        "answer": answer,
-        "model": model_name,
-        "timestamp": timestamp
+        "name": data['name'],
+        "tokenizer": data['tokenizer'],
+        "model": data['model']
     }
+    # Append to the empty list
+    model_list.append(out)
+    modelList = model_list
+    seen = set()
+    new_l = []
+    for d in modelList:
+        t = tuple(d.items())
+        if t not in seen:
+            seen.add(t)
+            new_l.append(d)
 
-    return jsonify(out)
+    modelList = new_l
+    return jsonify(modelList)
 
-
-# List historical answers from the database.
-@app.route("/answer", methods=['GET'])
-def list_answer():
-
-    # Validate timestamps
-    if request.args.get('start') == None or request.args.get('end') == None:
-        return "Query timestamps not provided", 400
-
-    # Prep SQL query
-    if request.args.get('model') != None:
-        sql = "SELECT * FROM answers WHERE timestamp >= {start} AND timestamp <= {end} AND model == '{model}'"
-        sql_rev = sql.format(start=request.args.get('start'), 
-                end=request.args.get('end'), model=request.args.get('model'))
-    else:
-        sql = 'SELECT * FROM answers WHERE timestamp >= {start} AND timestamp <= {end}'
-        sql_rev = sql.format(start=request.args.get('start'), end=request.args.get('end'))
-
-    # Query the database
-    con = sqlite3.connect(db)
-    cur = con.cursor()
-    out = []
-    for row in cur.execute(sql_rev):
-        out.append({
-            "question": row[0],
-            "context": row[1],
-            "answer": row[2],
-            "model": row[3],
-            "timestamp": row[4]
-        })
-    con.close()
-
-    return jsonify(out)
-
-
-# List models currently available for inference
+#GET models - to get the list of available models
 @app.route("/models", methods=['GET'])
-def list_model():
+def getmodels():
+    global model_list
+    if len(model_list) == 0:
+        return jsonify(df_model_details)
+    else:
+        return jsonify(model_list)
 
-    # Get the loaded models
-    models_loaded = []
-    for m in models['models']:
-        models_loaded.append({
-            'name': m['name'],
-            'tokenizer': m['tokenizer'],
-            'model': m['model']
-        })
+# DELETE models - to delete some models from the model list
+@app.route("/models", methods=['DELETE'])
+def delmodels():
+    global model_list
+    cnt = None
+    del_mod = request.args.get('model')
+    for i in range(0,len(model_list)):
+        if (model_list[i]['name']  == del_mod):
+            cnt = i
+            model_list.pop(cnt)
+    return jsonify(model_list)
 
-    return jsonify(models_loaded)
-
-
-# Add a model to the models available for inference
-@app.route("/models", methods=['PUT'])
-def add_model():
-
+# POST Answer - To get the answers for the question & context input and store the data in SQLite DB
+@app.route("/answer",methods=['POST'])
+def postmodels():
     # Get the request body data
     data = request.json
-    
-    # Load the provided model
-    if not validate_model(data['name']):
-        models_rev = []
-        for m in models['models']:
-            models_rev.append(m)
-        models_rev.append({
-                'name': data['name'],
-                'tokenizer': data['tokenizer'],
-                'model': data['model'],
-                'pipeline': pipeline('question-answering', 
-                    model=data['model'], 
-                    tokenizer=data['tokenizer'])
-        })
-        models['models'] = models_rev
-
-    # Get the loaded models
-    models_loaded = []
-    for m in models['models']:
-        models_loaded.append({
-            'name': m['name'],
-            'tokenizer': m['tokenizer'],
-            'model': m['model']
-        })
-
-    return jsonify(models_loaded)
-
-
-# Delete a model from the models available for inference
-@app.route("/models", methods=['DELETE'])
-def delete_model():
-
-    # Validate model name if given
+    # Get the model name
+    model_name = request.args.get('model')
+    # define empty list to store models
+    model_param1 = ''
+    model_param2 = ''
+    global model_list
+    # Check for parameter
     if request.args.get('model') == None:
-        return "Model name not provided in query string", 400
+        model_name = df_model_details['name']
+        model_param1 = df_model_details['model']
+        model_param2 = df_model_details['tokenizer']
 
-    # Error if trying to delete default model
-    if request.args.get('model') == models['default']:
-        return "Can't delete default model", 400
-
-    # Load the provided model
-    models_rev = []
-    for m in models['models']:
-        if m['name'] != request.args.get('model'):
-            models_rev.append(m)
-    models['models'] = models_rev
-
-    # Get the loaded models
-    models_loaded = []
-    for m in models['models']:
-        models_loaded.append({
-            'name': m['name'],
-            'tokenizer': m['tokenizer'],
-            'model': m['model']
-        })
-
-    return jsonify(models_loaded)
-
-
-
-#--------------#
-#  FUNCTIONS   #
-#--------------#
-
-# Validate that a model is available
-def validate_model(model_name):
-    
-    # Get the loaded models
-    model_names = []
-    for m in models['models']:
-        model_names.append(m['name'])
-
-    return model_name in model_names
-
-
-# Answer a question with a given model name
-def answer_question(model_name, question, context):
-    
-    # Get the right model pipeline
-    if model_name == None:
-        for m in models['models']:
-            if m['name'] == models['default']:
-                model_name = m['name']
-                hg_comp = m['pipeline']
     else:
-        for m in models['models']:
-            if m['name'] == model_name:
-                hg_comp = m['pipeline']
+        # start looping through models
+        for i in range(0,len(model_list)):
+            if (model_list[i]['name']  == model_name):
+                model_param1 = model_list[i]['model']
+                model_param2 = model_list[i]['tokenizer']
+            else:
+                return "The model you have requested is not available in the API"
+    # Run the model now
+    hg_comp = pipeline('question-answering',
+                   model=model_param1,
+                   tokenizer=model_param2)
 
-    # Answer the answer
-    answer = hg_comp({'question': question, 'context': context})['answer']
+    # Get the answer
+    answer = hg_comp({'question': data['question'], 'context': data['context']})['answer']
 
-    return answer, model_name
+    # Create the response body.
+    out = {
+        "timestamp" : int(time.time()),
+        "model" : model_name,
+        "answer": answer,
+        "question": data['question'],
+        "context": data['context']
+        }
 
+    # Creating the database
+    try:
+        # Open connection
+        sqliteConnection = sqlite3.connect('SQLite_Python.db')
+        # Initialize Cursor
+        cursor = sqliteConnection.cursor()
+        # Insert Query
+        sqlite_insert_Query = """
+                                  insert into answers VALUES (?,?,?,?,?);
+                                    """
+        # Execute the query
+        cursor.execute(sqlite_insert_Query, (int(time.time()), model_name, answer, data['question'],data['context']))
+        #Save changes to the database
+        sqliteConnection.commit()
+        #Close the cursor
+        cursor.close()
 
-# Run main by default if running "python answer.py"
-if __name__ == '__main__':
+    # Exception 1
+    except sqlite3.Error as error:
+        print("Error while connecting to sqlite", error)
 
-    # Initialize our default model.
-    models = { 
-        "default": "distilled-bert",
-        "models": [
-            {
-                "name": "distilled-bert",
-                "tokenizer": "distilbert-base-uncased-distilled-squad",
-                "model": "distilbert-base-uncased-distilled-squad",
-                "pipeline": pipeline('question-answering', 
-                    model="distilbert-base-uncased-distilled-squad", 
-                    tokenizer="distilbert-base-uncased-distilled-squad")
+    #Close the connection
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+            print("The SQLite connection is closed")
+    return jsonify(out)
+
+# GET recently answered question details
+@app.route("/answer",methods=['GET'])
+def getanswer():
+    global model_list
+    try:
+
+        # Parameter 1
+        model = request.args.get('model')
+        # Parameter 2
+        start_ut = request.args.get('start')
+        # Parameter 3
+        end_ut = request.args.get('end')
+        # Open the connection
+        sqliteConnection = sqlite3.connect('SQLite_Python.db')
+        # Initialize the cursor
+        cursor = sqliteConnection.cursor()
+        #Get the data from the database
+        sqlite_select_Query = """select * from answers where timestamp between ? and ? and model=?;"""
+        # Execute the query
+        cursor.execute(sqlite_select_Query,(start_ut,end_ut,model))
+        # Save changes
+        sqliteConnection.commit()
+
+        # Stroing the results into JSON
+        global result
+        result = cursor.fetchall()
+        out_list = []
+        for row in result:
+            out = {
+                "timestamp": row[0],
+                "model": row[1],
+                "answer": row[2],
+                "question": row[3],
+                "context": row[4]
             }
-        ]
-    }
+            out_list.append(out)
+        # Close the cursor
+        cursor.close()
+    except sqlite3.Error as error:
+        print("Error while getting data from sqlite", error)
+    finally:
+        if sqliteConnection:
+            sqliteConnection.close()
+            print("The SQLite connection is closed")
 
-    # Database setup
-    con = sqlite3.connect(db)
-    cur = con.cursor()
-    cur.execute('''CREATE TABLE answers
-               (question text, context text, model text, answer text, timestamp int)''')
-    con.commit()
-    con.close()
+    return jsonify(out_list)
 
+# Run the Application
+if __name__ == '__main__':
+    # Call the create table function
+    create_table()
     # Run our Flask app and start listening for requests!
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)), threaded=True)
