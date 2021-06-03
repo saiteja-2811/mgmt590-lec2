@@ -29,6 +29,7 @@ import psycopg2
 # Format DB connection information
 
 rootcertfile = os.environ.get('PG_SSLROOTCERT')
+rootcertfile = rootcertfile.replace('@','=')
 
 os.mkdir('.ssl')
 
@@ -36,11 +37,12 @@ with open('.ssl/server-ca.pem','w') as f:
 	f.write(rootcertfile)
 	
 clientcertfile = os.environ.get('PG_SSLCERT')
-
+clientcertfile = clientcertfile.replace('@','=')
 with open('.ssl/client-cert.pem','w') as f:
 	f.write(clientcertfile)
 	
 clientkeyfile = os.environ.get('PG_SSLKEY')
+
 
 with open('.ssl/client-key.pem','w') as f:
       f.write(clientkeyfile)
