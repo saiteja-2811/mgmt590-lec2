@@ -25,8 +25,6 @@ import psycopg2
 
 import os
 
-import psycopg2
-
 # Format DB connection information
 dir = 'ssl'
 if os.path.exists(dir):
