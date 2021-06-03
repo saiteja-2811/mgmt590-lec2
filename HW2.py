@@ -27,13 +27,32 @@ import os
 import psycopg2
 
 # Format DB connection information
+
+rootcertfile = os.environ.get('PG_SSLROOTCERT')
+
+os.mkdir('.ssl')
+
+with open('.ssl/server-ca.pem','w') as f:
+	f.write(rootcertfile)
+	
+clientcertfile = os.environ.get('PG_SSLCERT')
+
+with open('.ssl/client-cert.pem','w') as f:
+	f.write(clientcertfile)
+	
+clientkeyfile = os.environ.get('PG_SSLKEY')
+
+with open('.ssl/client-key.pem','w') as f:
+      f.write(clientkeyfile)
+
 sslmode = "sslmode=verify-ca"
-sslrootcert = "sslrootcert={}".format(os.environ.get('PG_SSLROOTCERT'))
-sslcert = "sslcert={}".format(os.environ.get('PG_SSLCERT'))
-sslkey = "sslkey={}".format(os.environ.get('PG_SSLKEY'))
+sslrootcert = "sslrootcert={}".format(".ssl/server-ca.pem")
+sslcert = "sslrootcert={}".format(".ssl/client-cert.pem")
+sslkey = "sslkey={}".format(".ssl/client-key.pem")
+
 hostaddr = "hostaddr={}".format(os.environ.get('PG_HOST'))
 user = "user=postgres"
-password = "password={}".format(os.environ.get('PG_PASSWORD'))#.format(os.environ.get('PG_PASSWORD'))
+password = "password={}".format(os.environ.get('PG_PASSWORD'))
 dbname = "dbname=mgmt590"
 # Construct database connect string
 db_connect_string = " ".join([
