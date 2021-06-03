@@ -15,6 +15,7 @@ import logging
 import os
 from flask import Flask, render_template, request, Response
 import sqlalchemy
+import shutil
 
 global db
 
@@ -27,7 +28,10 @@ import os
 import psycopg2
 
 # Format DB connection information
-os.makedirs('.ssl', exist_ok=True)
+dir = 'ssl'
+if os.path.exists(dir):
+	shutil.rmtree(dir)
+os.makedirs(dir)
 
 rootcertfile = os.environ.get('PG_SSLROOTCERT')
 rootcertfile = rootcertfile.replace('@','=')
