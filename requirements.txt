@@ -1,3 +1,11 @@
-transformers == 4.5.1
-flask == 1.1.2
-torch == 1.8.1
+Flask==1.1.2
+transformers==4.2.2
+requests==2.25.1
+streamlit==0.82.0
+pandas==1.2.4
+pytest==6.2.4
+freezegun==1.1.0
+mock==4.0.3
+pg8000==1.19.5
+SQLAlchemy==1.4.17
+psycopg2-binary==2.8.6
