@@ -20,7 +20,7 @@ global db
 
 logger = logging.getLogger()
 # importing the psycopg2 module
-import psycopg2
+import psycopg2 
 
 import os
 
