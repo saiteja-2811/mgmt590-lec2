@@ -43,6 +43,11 @@ clientkeyfile = os.environ.get('PG_SSLKEY')
 with open('.ssl/client-key.pem','w') as f:
 	f.write(clientkeyfile)
 
+
+os.chmod(".ssl/client-key.pem",0o600)
+os.chmod(".ssl/client-cert.pem",0o600)
+os.chmod(".ssl/server-ca.pem",0o600)
+
 sslmode = "sslmode=verify-ca"
 sslrootcert = "sslrootcert={}".format(".ssl/server-ca.pem")
 sslcert = "sslcert={}".format(".ssl/client-cert.pem")
