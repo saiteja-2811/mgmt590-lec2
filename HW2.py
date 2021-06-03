@@ -35,27 +35,27 @@ os.makedirs(dir)
 
 rootcertfile = os.environ.get('PG_SSLROOTCERT')
 rootcertfile = rootcertfile.replace('@','=')
-with open('.ssl/server-ca.pem','w') as f:
+with open('ssl/server-ca.pem','w') as f:
 	f.write(rootcertfile)
 	
 clientcertfile = os.environ.get('PG_SSLCERT')
 clientcertfile = clientcertfile.replace('@','=')
-with open('.ssl/client-cert.pem','w') as f:
+with open('ssl/client-cert.pem','w') as f:
 	f.write(clientcertfile)
 
 clientkeyfile = os.environ.get('PG_SSLKEY')
-with open('.ssl/client-key.pem','w') as f:
+with open('ssl/client-key.pem','w') as f:
 	f.write(clientkeyfile)
 
 
-os.chmod(".ssl/client-key.pem",0o600)
-os.chmod(".ssl/client-cert.pem",0o600)
-os.chmod(".ssl/server-ca.pem",0o600)
+os.chmod("ssl/client-key.pem",0o600)
+os.chmod("ssl/client-cert.pem",0o600)
+os.chmod("ssl/server-ca.pem",0o600)
 
 sslmode = "sslmode=verify-ca"
-sslrootcert = "sslrootcert={}".format(".ssl/server-ca.pem")
-sslcert = "sslcert={}".format(".ssl/client-cert.pem")
-sslkey = "sslkey={}".format(".ssl/client-key.pem")
+sslrootcert = "sslrootcert={}".format("ssl/server-ca.pem")
+sslcert = "sslcert={}".format("ssl/client-cert.pem")
+sslkey = "sslkey={}".format("ssl/client-key.pem")
 
 hostaddr = "hostaddr={}".format(os.environ.get('PG_HOST'))
 user = "user=postgres"
