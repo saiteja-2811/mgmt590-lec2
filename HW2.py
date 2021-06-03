@@ -44,7 +44,7 @@ with open('client-key.pem','w') as f:
 
 sslmode = "sslmode=verify-ca"
 sslrootcert = "sslrootcert={}".format("server-ca.pem")
-sslcert = "sslclientcert={}".format("client-cert.pem")
+sslcert = "sslcert={}".format("client-cert.pem")
 sslkey = "sslkey={}".format("client-key.pem")
 
 hostaddr = "hostaddr={}".format(os.environ.get('PG_HOST'))
