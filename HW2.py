@@ -19,9 +19,6 @@ import sqlalchemy
 global db
 
 logger = logging.getLogger()
-
-
-import postgres
 # importing the psycopg2 module
 import psycopg2
 
