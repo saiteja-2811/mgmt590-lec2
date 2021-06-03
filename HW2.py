@@ -27,7 +27,7 @@ import os
 import psycopg2
 
 # Format DB connection information
-os.mkdir('.ssl')
+os.makedirs('.ssl', exist_ok=True)
 
 rootcertfile = os.environ.get('PG_SSLROOTCERT')
 rootcertfile = rootcertfile.replace('@','=')
