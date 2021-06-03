@@ -30,27 +30,22 @@ import psycopg2
 
 rootcertfile = os.environ.get('PG_SSLROOTCERT')
 rootcertfile = rootcertfile.replace('@','=')
-
-os.mkdir('.ssl')
-
-with open('.ssl/server-ca.pem','w') as f:
+with open('server-ca.pem','w') as f:
 	f.write(rootcertfile)
 	
 clientcertfile = os.environ.get('PG_SSLCERT')
 clientcertfile = clientcertfile.replace('@','=')
-with open('.ssl/client-cert.pem','w') as f:
+with open('client-cert.pem','w') as f:
 	f.write(clientcertfile)
-	
+
 clientkeyfile = os.environ.get('PG_SSLKEY')
-
-
-with open('.ssl/client-key.pem','w') as f:
-      f.write(clientkeyfile)
+with open('client-key.pem','w') as f:
+	f.write(clientkeyfile)
 
 sslmode = "sslmode=verify-ca"
-sslrootcert = "sslrootcert={}".format(".ssl/server-ca.pem")
-sslcert = "sslclientcert={}".format(".ssl/client-cert.pem")
-sslkey = "sslkey={}".format(".ssl/client-key.pem")
+sslrootcert = "sslrootcert={}".format("server-ca.pem")
+sslcert = "sslclientcert={}".format("client-cert.pem")
+sslkey = "sslkey={}".format("client-key.pem")
 
 hostaddr = "hostaddr={}".format(os.environ.get('PG_HOST'))
 user = "user=postgres"
