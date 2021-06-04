@@ -30,6 +30,8 @@ I have learnt the below processes.
 
 - E - Building and running the API locally
 
+- F - Run Test Cases to test the application
+
 ## A - Question Answering using Hugging Face Transformers
 These are NLP models used to answer the questions when given a context to the question. A default model "distilbert-base-uncased-distilled-squad" has been used to answer questions. But you can use the "POST" method with "models" handler to input a model type. 
 
@@ -222,3 +224,34 @@ Step 3. Build and deploy the application to Google Cloud Run.
 1. When complete, the last command execute in the previous step will display the
    URL of deployed application; navigate to that URL in your web browser to
    access the application.
+   
+## F - Run Test Cases to test the application
+pytest is a framework that makes building simple and scalable tests easy. Tests are expressive and readable—no boilerplate code required. Get started in minutes with a small unit test or complex functional test for your application or library.
+You can `install` pytest using Install pytest
+Run the following command in your command line:
+- `pip install -U pytest`
+
+pytest will run all files of the form test_*.py or *_test.py in the current directory and its subdirectories.
+```
+content of test_sysexit.py
+
+import pytest
+-- First Test Case
+def f():
+    raise SystemExit(1)
+
+-- Second Test Case
+def test_mytest():
+    with pytest.raises(SystemExit):
+        f()
+```
+
+This is invoked in github actions using the following command. This picks the testing file and runs that over our model.
+
+```
+- name: Run Tests
+  run: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt 
+    python -m pytest -vv
+```
