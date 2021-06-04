@@ -34,7 +34,7 @@ os.makedirs(dir)
 rootcertfile = os.environ.get('PG_SSLROOTCERT')
 rootcertfile = rootcertfile.replace('@','=')
 with open('ssl/server-ca.pem','w') as f:
-	f.write(rootcertfile)
+	f.write(rootcertfile) 
 	
 clientcertfile = os.environ.get('PG_SSLCERT')
 clientcertfile = clientcertfile.replace('@','=')
