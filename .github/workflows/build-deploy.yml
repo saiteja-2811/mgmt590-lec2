@@ -7,6 +7,13 @@ env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT }}
   SERVICE: mgmt590-api
   REGION: us-central1
+  PG_HOST: ${{secrets.PG_HOST}}
+  PG_SSLCERT: ${{secrets.PG_SSLCERT}}
+  PG_SSLROOTCERT: ${{secrets.PG_SSLROOTCERT}}
+  PG_SSLKEY: ${{secrets.PG_SSLKEY}}
+  PG_PASSWORD: ${{secrets.PG_PASSWORD}}
+  
+  
 jobs:
   deploy:
     runs-on: ubuntu-latest
