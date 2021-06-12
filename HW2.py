@@ -48,10 +48,9 @@ with open('app/creds.json', 'wb') as f1:
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = '/app/creds.json'
 
 # getting bucket details
-bucket_name = os.environ.get('STORAGE_BUCKET')
+# bucket_name = os.environ.get('STORAGE_BUCKET')
 storage_client = storage.Client()
-bucket = storage_client.get_bucket('mgmt590-mayank')
-
+bucket = storage_client.get_bucket('mgmt590-pst')
 
 rootcertfile = os.environ.get('PG_SSLROOTCERT')
 rootcertfile = rootcertfile.replace('@', '=')
@@ -137,9 +136,7 @@ def insert_db(timestamp, model, answer, question, context):
     conn = psycopg2.connect(db_connect_string)
     # Open a cursor to perform database operations
     cur = conn.cursor()
-    # conn = sqlite3.connect('database.db')
     # Creating tables
-
     postgres_insert_query = "INSERT INTO prodscale (timestamp, model, answer,question,context) VALUES (%s,%s,%s,%s,%s)"
 
     record_to_insert = (timestamp, model, answer, question, context)
