@@ -4,7 +4,7 @@
 
 In this assignment we are asked to perform two major tasks:
 1. Build a REST API which uses NLP techniques and answers the questions given with a context.
-2. Deploy this API using Google Cloud. It is deployed at https://mgmt590-assignment2-ykof2ki2ga-uc.a.run.app
+2. Deploy this API using Google Cloud. It is deployed at https://mgmt590-api-ykof2ki2ga-uc.a.run.app
 
 ## Learnings
 
