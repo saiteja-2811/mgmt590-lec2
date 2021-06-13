@@ -9,3 +9,5 @@ mock==4.0.3
 pg8000==1.19.5
 SQLAlchemy==1.4.17
 psycopg2-binary==2.8.6
+google-cloud-storage==1.38.0
+pybase64==1.1.4
