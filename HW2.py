@@ -63,8 +63,6 @@ with open('.ssl/client-cert.pem', 'w') as f:
     f.write(clientcertfile)
 
 clientkeyfile = os.environ.get('PG_SSLKEY')
-clientkeyfile = clientkeyfile.replace('@', '=')
-
 with open('.ssl/client-key.pem', 'w') as f:
     f.write(clientkeyfile)
 
